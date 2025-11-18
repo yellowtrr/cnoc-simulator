@@ -4,8 +4,9 @@
 #include "router.h"
 #include "packet.h"
 
+
 int injectPacket(int t, Router r[], Packet pck[], int size,
-int totalsize, int capacity, int* packetsCreated, float injectionRate, FILE* fptr)
+int totalsize, int capacity, int* packetsCreated, float injectionRate, FILE* fptr, int* failedToInject)
 { // function to inject new packet
 	fprintf(fptr, "-----------------------\n");
 	fprintf(fptr, "Timestep: %d\n", t);
@@ -31,7 +32,8 @@ int totalsize, int capacity, int* packetsCreated, float injectionRate, FILE* fpt
 			if (nf == -1 && ef == -1 && sf == -1 && wf == -1) // if all buffers are busy
 			{
 				fprintf(fptr, "Injection failed due to stall at %d router\n", a);
-				return 0;
+				*failedToInject = *failedToInject + 1;
+				continue;
 			} else { // if there is room for the packet
 		
 				pck[indx].start_point = a; // initialize its values
@@ -143,6 +145,7 @@ int movePackets(Router r[], Packet pck[], int size, int packetsCreated, int capa
 			{
 				fprintf(fptr, "ID: %d We have stall. Added latency\n", pck[j].id);
 				pck[j].location = pck[j].previouslocation; // packet can not move to next location
+				pck[j].stall = 1;
 			}
 		}
 
@@ -178,6 +181,7 @@ int movePackets(Router r[], Packet pck[], int size, int packetsCreated, int capa
 			else if (index == -1) // if no buffer available
 			{
 				fprintf(fptr, "ID: %d We have stall. Added latency.\n", pck[j].id);
+				pck[j].stall = 1;
 			}
 
 			

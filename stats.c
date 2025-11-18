@@ -2,8 +2,8 @@
 
 float calculateAverageLatency(Packet* pack, int totalpackets)
 {
-	float totalLatency = 0;
-	float totalDelivered = 0;
+	double totalLatency = 0;
+	double totalDelivered = 0;
 
 	for (int i = 0; i < totalpackets; i++)
 	{
@@ -45,5 +45,16 @@ int getTotalDelivered(Packet* pack, int totalpackets)
 	}
 
 	return packetsDelivered;
+}
+
+int getTotalStall(Packet* pack, int totalpackets)
+{
+	int result = 0;
+	for (int i = 0; i < totalpackets; i++)
+	{
+		if (pack[i].stall == 1) result++;
+	}
+
+	return result;
 }
 

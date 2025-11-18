@@ -16,6 +16,7 @@ typedef struct
 	int ydir;
 	int hops;
 	int latency;
+	int stall;
 	int delivered;
 	int isininputbuffer;
 	int outputbuffer;
@@ -27,7 +28,6 @@ int calculatexsteps(int start, int finish, int dimention, int* xdirection);
 
 int calculateysteps(int start, int finish, int dimention, int* ydirection);
 
-int getOutputBuffer(int xsteps, int ysteps, int xdirection, int ydirection);
 
  
 #endif

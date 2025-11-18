@@ -7,6 +7,7 @@
 #include "simulation.h"
 #include "stats.h"
 
+
 void prompt() // prompt that just prints to the user instructions on how to run the program
 {
 	printf("\n\n");
@@ -23,10 +24,17 @@ int main(int argc, char* argv[])
 {
 	FILE *fptr;
 	fptr = fopen("noc_output", "w"); // file that will store the detailed simulation
+
+	if (!fptr)
+	{
+		perror("Failed to open file");
+		return 1;
+	}
     int packetsCreated = 0;
     srand(time(NULL)); // seeding rand function
     int size, totalsteps, capacity, extradebuginfo;
     float injectionRate;
+    int failedToInject = 0;
 
     int flag = 1;
 
@@ -69,17 +77,23 @@ int main(int argc, char* argv[])
 		}
 	} // initialize all the routers and their buffers
 
-	int totalPacketCapacity = totalsteps * totalsize; // max amount of packets
-    Packet pck[totalPacketCapacity]; // create packets
+	unsigned int totalPacketCapacity = totalsteps * totalsize; // max amount of packets
+    //Packet pck[totalPacketCapacity]; // create packets
+    Packet* pck = malloc(sizeof(Packet) * totalPacketCapacity);
+    if (pck == NULL)
+    {
+    	perror("malloc error");
+    	return 1;
+    }
 
     // Initialize packets
-    for (int i = 0; i < totalPacketCapacity; ++i)
+    for (unsigned int i = 0; i < totalPacketCapacity; ++i)
         pck[i] = (Packet){0};
 
 	for (int t = 0; t < totalsteps; t++)
 	{
 		// at each timestep, first inject new packets
-		injectPacket(t, r, pck, size, totalsize, capacity, &packetsCreated, injectionRate, fptr);
+		injectPacket(t, r, pck, size, totalsize, capacity, &packetsCreated, injectionRate, fptr, &failedToInject);
 
 		// then move the already existing ones
 		movePackets(r, pck, size, packetsCreated, capacity, fptr);
@@ -107,6 +121,9 @@ int main(int argc, char* argv[])
 
 	printf("Average latency is: %.2f\n", calculateAverageLatency(pck, packetsCreated));
 	printf("Max latency is: %d\n", calculateMaxLatency(pck, packetsCreated));
+
+	printf("Out of total packets injected, %d have experienced stall\n", getTotalStall(pck, packetsCreated));
+	printf("In total, %d packets have failed to be injected\n", failedToInject);
 
 	printf("To see the detailed simulation, check noc_output file\n");
 	
