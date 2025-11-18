@@ -1,6 +1,7 @@
 #ifndef ROUTER_H
 #define ROUTER_H
 
+#include "packet.h"
 #define MAX_BUFFER_CAPACITY 16
 typedef struct
 {
@@ -16,5 +17,11 @@ typedef struct
 }Router;
 
 int isThereFreeBuffer(int* buffer, int capacity);
+
+int getOutputBuffer(int xsteps, int ysteps, int xdirection, int ydirection);
+
+void assignBuffersInput(int j, Router r[], Packet pck[], int nextbuffer);
+
+void assignBuffersOutput(int j, Router r[], Packet pck[], int nextbuffer);
 
 #endif

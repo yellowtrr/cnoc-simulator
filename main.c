@@ -1,31 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+
 #include "router.h"
 #include "packet.h"
+#include "simulation.h"
 #include "stats.h"
-#include "mainfunctions.h"
 
-
-void assignBuffersInput(int j, Router r[], Packet pck[], int nextbuffer)
-{ // choose buffer if packet goes from output buffer -> input buffer
-			
-	if (nextbuffer == 0) pck[j].bufptr = &r[pck[j].location].east_input_buffer[0];
-	if (nextbuffer == 1) pck[j].bufptr = &r[pck[j].location].south_input_buffer[0];
-	if (nextbuffer == 2) pck[j].bufptr = &r[pck[j].location].west_input_buffer[0];
-	if (nextbuffer == 3) pck[j].bufptr = &r[pck[j].location].north_input_buffer[0];
-	// bufptr pointer always points to first element of array
+void prompt() // prompt that just prints to the user instructions on how to run the program
+{
+	printf("\n\n");
+	printf("Usage: ./[executable] [size] [buffer_capacity] [injection_rate] [timesteps] [debuginfo]\n");
+	printf("size: 2D-mesh size. For example, 3 for a 3x3 2D-mesh\n");
+	printf("buffer_capacity: the amount of packets a buffer can store. Max is 16\n");
+	printf("injection_rate: the probability each router will create a new packet at each new timestep. Must be a float number from 0 to 1.0\n");
+	printf("timesteps: total simulation steps\n");
+	printf("debuginfo: 1 for extra debug info, 0 for simple readable output\n");
+	printf("\n\n");
 }
 
-void assignBuffersOutput(int j, Router r[], Packet pck[], int nextbuffer)
-{ // choose buffer if packet goes from input -> output buffer
-	if (nextbuffer == 0) pck[j].bufptr = &r[pck[j].location].west_output_buffer[0];
-	if (nextbuffer == 1) pck[j].bufptr = &r[pck[j].location].north_output_buffer[0];
-	if (nextbuffer == 2) pck[j].bufptr = &r[pck[j].location].east_output_buffer[0];
-	if (nextbuffer == 3) pck[j].bufptr = &r[pck[j].location].south_output_buffer[0];
-}
-
-int main()
+int main(int argc, char* argv[])
 {
 	FILE *fptr;
 	fptr = fopen("noc_output", "w"); // file that will store the detailed simulation
@@ -33,26 +27,32 @@ int main()
     srand(time(NULL)); // seeding rand function
     int size, totalsteps, capacity, extradebuginfo;
     float injectionRate;
-    printf("Enter size (eg type 3 for 3x3 size): ");
-    scanf("%d", &size);
 
-    int totalsize = size * size; // if size = 3, there will be a total of 9 routers
+    int flag = 1;
 
-	printf("Enter capacity of each buffer (eg 3 packets): ");
-	scanf("%d", &capacity);
+   	if (argc < 6) // if less than 6 arguments
+   	{
+   		prompt();
+   		return 1; // exit program, prevents segmentation fault
+   	}
+   	if (atoi(argv[1]) < 2) flag = 0; // check if arguments are correct, flag = 0 means there was something wrong
+   	if (atoi(argv[2]) > 16 || atoi(argv[2]) < 1) flag = 0;
+   	if (atof(argv[3]) > 1.0 || atof(argv[3]) < 0) flag = 0;
+   	if (atoi(argv[4]) < 1) flag = 0;
 
-	printf("Enter injection rate(min = 0, max = 1.0): ");
-	scanf("%f", &injectionRate);
+   	if (flag == 0) 
+   	{
+   		prompt();
+   		return 1; // if something in the arguments was wrong, exit the program
+   	}
 
-    printf("Enter total steps: ");
-    scanf("%d", &totalsteps);
+   	size = atoi(argv[1]); // match each argument to their variable
+   	capacity = atoi(argv[2]);
+   	injectionRate = atof(argv[3]);
+   	totalsteps = atoi(argv[4]);
+   	extradebuginfo = atoi(argv[5]);
 
-    printf("\n");
-
-    printf("Do you want extra debugging info?\n");
-    printf("This includes an array at each timestep that marks each buffer as free (0) or busy (1)\n");
-    printf("Type 0 if you do not wish to have extra debugging info, or 1 if you do: ");
-    scanf("%d", &extradebuginfo);
+    int totalsize = size * size; // total amount of routers. eg if size = 3 we will have a total of 9 routers
 
     Router r[totalsize]; // create totalsize routers
 
@@ -70,7 +70,7 @@ int main()
 	} // initialize all the routers and their buffers
 
 	int totalPacketCapacity = totalsteps * totalsize; // max amount of packets
-    Packet pck[totalPacketCapacity]; 
+    Packet pck[totalPacketCapacity]; // create packets
 
     // Initialize packets
     for (int i = 0; i < totalPacketCapacity; ++i)
@@ -84,7 +84,7 @@ int main()
 		// then move the already existing ones
 		movePackets(r, pck, size, packetsCreated, capacity, fptr);
 
-		if (extradebuginfo)
+		if (extradebuginfo) // only runs if user wants extra debug info based on the arguments he used
 		{
 			for (int k = 0; k < totalsize; k++)
 			{
@@ -103,7 +103,7 @@ int main()
 	printf("STATS-----------------------------------------------------\n");
 	printf("In total, %d packets have been injected\n", packetsCreated);
 	printf("Out of those packets, %d have been succesfully delivered\n", getTotalDelivered(pck, packetsCreated));
-	printf("That equals a success rate of %.2f\n", (float)getTotalDelivered(pck, packetsCreated) / packetsCreated);	
+	printf("That equals a success rate of %.2f\n", 100* ((float)getTotalDelivered(pck, packetsCreated) / packetsCreated));	
 
 	printf("Average latency is: %.2f\n", calculateAverageLatency(pck, packetsCreated));
 	printf("Max latency is: %d\n", calculateMaxLatency(pck, packetsCreated));
