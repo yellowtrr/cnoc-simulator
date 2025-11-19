@@ -123,7 +123,7 @@ int movePackets(Router r[], Packet pck[], int size, int packetsCreated, int capa
 			if (pck[j].bufptr != NULL) pck[j].prevbufptr = pck[j].bufptr; // save pointer
 			assignBuffersInput(j, r, pck, nextbuffer); // assign the pointers to the correct buffer location in memory, index 0
 
-			pck[j].latency += 1;
+			pck[j].latency += 1.0;
 			int index = isThereFreeBuffer(pck[j].bufptr, capacity); // function returns the index that is AVAILABLE
 
 			if (index != -1) // if there is available buffer
@@ -156,7 +156,7 @@ int movePackets(Router r[], Packet pck[], int size, int packetsCreated, int capa
 			if (pck[j].location == pck[j].finish_point) // if packet just arrived at final destination
 			{
 				pck[j].delivered = 1; // mark as delivered
-				fprintf(fptr, "Packet ID: %d succesfully delivered after %d latency!\n", pck[j].id,
+				fprintf(fptr, "Packet ID: %d succesfully delivered after %.1f latency!\n", pck[j].id,
 				pck[j].latency);
 				*pck[j].bufptr = 0; // mark its buffer as AVAILABLE
 				continue; // move on to next packet
@@ -165,7 +165,7 @@ int movePackets(Router r[], Packet pck[], int size, int packetsCreated, int capa
 			if (pck[j].bufptr != NULL) pck[j].prevbufptr = pck[j].bufptr; // store bufptr address
 
 			assignBuffersOutput(j, r, pck, nextbuffer);
-			pck[j].latency += 1; 
+			pck[j].latency += 1.0; 
 
 			int index = isThereFreeBuffer(pck[j].bufptr, capacity);
 			if (index != -1) // if there is available buffer

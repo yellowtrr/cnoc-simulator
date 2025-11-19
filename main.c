@@ -126,6 +126,8 @@ int main(int argc, char* argv[])
 	printf("In total, %d packets have failed to be injected\n", failedToInject);
 
 	printf("To see the detailed simulation, check noc_output file\n");
+
+	free(pck);
 	
 	return 0;
 }

@@ -15,7 +15,7 @@ typedef struct
 	int xdir;
 	int ydir;
 	int hops;
-	int latency;
+	double latency;
 	int stall;
 	int delivered;
 	int isininputbuffer;

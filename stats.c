@@ -1,6 +1,6 @@
 #include "stats.h"
 
-float calculateAverageLatency(Packet* pack, int totalpackets)
+double calculateAverageLatency(Packet* pack, int totalpackets)
 {
 	double totalLatency = 0;
 	double totalDelivered = 0;
@@ -10,11 +10,11 @@ float calculateAverageLatency(Packet* pack, int totalpackets)
 		if (pack[i].delivered)
 		{
 			totalLatency += pack[i].latency;
-			totalDelivered += 1;
+			totalDelivered += 1.0;
 		}
 	}
 
-	return totalLatency/totalDelivered;
+	return totalLatency / totalDelivered;
 }
 
 int calculateMaxLatency(Packet* pack, int totalpackets)
