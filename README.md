@@ -1,5 +1,5 @@
 # cnoc-simulator
-A NoC simulator written in C
+A Network on Chip simulator written in C
 
 ## Features
 
